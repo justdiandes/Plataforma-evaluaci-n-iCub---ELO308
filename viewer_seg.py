@@ -50,13 +50,13 @@ image_sub = rospy.Subscriber('/my_camera/image_raw', Image, image_callback)
 
 #------------------Segmentación inicial-------------------------#
 
-ref_image = cv2.imread("conocida30cm.png")
+ref_image = cv2.imread("redd-ball-50cm.png")
 
 colorF = ColorFinder(False)
 #Hue, saturation, value
 #hsvVals = {'hmin': 0, 'smin': 91, 'vmin': 124, 'hmax': 6, 'smax': 255, 'vmax': 255}# Este es el primero, funciona con menos luminosidad
 #Buscar la forma de tener un rango de detección
-hsvVals = {'hmin': 0, 'smin': 74, 'vmin': 117, 'hmax': 179, 'smax': 255, 'vmax': 255}
+#hsvVals = {'hmin': 0, 'smin': 74, 'vmin': 117, 'hmax': 179, 'smax': 255, 'vmax': 255}
 hsvVals_sim = {'hmin': 0, 'smin': 183, 'vmin': 166, 'hmax': 0, 'smax': 255, 'vmax': 255}
 
 #--------------Matríz de parámetros intrínsecos-------------------#
@@ -70,7 +70,7 @@ K = np.array([[focal_length_x, 0, optical_center_x],
 
 #--------------Extracción datos desde imagen referencia para cálculo de distancia------------------#
 
-imgColoRef, maskRef = colorF.update(ref_image, hsvVals)
+imgColoRef, maskRef = colorF.update(ref_image, hsvVals_sim)
 imgContourRef, contoursRef = cvzone.findContours(ref_image, maskRef, minArea=5000)
 href, wref, _ = ref_image.shape
 if contoursRef:
