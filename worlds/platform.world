@@ -37,19 +37,19 @@
     </include>
 
       <include>
-      <uri>/home/diego/Escritorio/camera_ROS/models/table</uri>
+      <uri>/home/diego/Escritorio/Plataforma-evaluacion-iCub-ELO308/models/table</uri>
       <pose>-0.530772 0 0 0 0 -1.57</pose>
     </include>
 
 
     <include>
-      <uri>/home/diego/Escritorio/camera_ROS/models/red-ball</uri>
+      <uri>/home/diego/Escritorio/Plataforma-evaluacion-iCub-ELO308/models/red-ball</uri>
       <pose>-0.530772 0 0.510000 0 0 0</pose>
 
     </include>
 
     <include>
-       <uri>/home/diego/Escritorio/camera_ROS/models/camera</uri>
+       <uri>/home/diego/Escritorio/Plataforma-evaluacion-iCub-ELO308/models/camera</uri>
         <pose>-0.530772 0 1.315000 0 1.555 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>

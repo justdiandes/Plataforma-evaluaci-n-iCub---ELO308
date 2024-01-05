@@ -1,9 +1,8 @@
 <?xml version="1.0" ?>
 <sdf version="1.7">
-  <model name="red-ball">
-    <static>false</static>
-    <link name="link">
-        <visual name="visual">
+<actor name="red-ball">
+        <link name="link">
+          <visual name="visual">
             <geometry>
                 <sphere>
                     <radius> 0.035 </radius>
@@ -15,26 +14,33 @@
                     <name>Gazebo/Red</name>
                 </script>
             </material>
-        </visual>
-        <collision name="collision">
-            <geometry>
-                <sphere>
-                    <radius> 0.035 </radius>
-                </sphere>
-            </geometry>
-        </collision>
-        <inertial>
-            <mass>0.2</mass>
-            <!-- (2/5)*M*R^2 -->
-            <inertia>
-              <ixx>0.000098</ixx>
-              <ixy>0.0</ixy>
-              <ixz>0.0</ixz>
-              <iyy>0.000098</iyy>
-              <iyz>0.0</iyz>
-              <izz>0.000098</izz>
-            </inertia>
-        </inertial>
-    </link>
-  </model>
+          </visual>
+        </link>
+        <script>
+          <loop>true</loop>
+          <auto_start>true</auto_start>
+          <trajectory id="0" type="square">
+             <waypoint>
+                <time>0.0</time>
+                <pose>-1 -1 1 0 0 0</pose>
+             </waypoint>
+             <waypoint>
+                <time>1.0</time>
+                <pose>-1 1 1 0 0 0</pose>
+             </waypoint>
+             <waypoint>
+                <time>2.0</time>
+                <pose>1 1 1 0 0 0</pose>
+             </waypoint>
+             <waypoint>
+                <time>3.0</time>
+                <pose>1 -1 1 0 0 0</pose>
+             </waypoint>
+             <waypoint>
+                <time>4.0</time>
+                <pose>-1 -1 1 0 0 0</pose>
+             </waypoint>
+          </trajectory>
+        </script>
+      </actor>
 </sdf>
