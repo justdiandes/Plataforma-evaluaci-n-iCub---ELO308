@@ -50,7 +50,7 @@
 
     <include>
        <uri>/home/diego/Escritorio/camera_ROS/models/camera</uri>
-        <pose>-0.530772 0 1.510000 0 1.555 0</pose>
+        <pose>-0.530772 0 1.315000 0 1.555 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
 

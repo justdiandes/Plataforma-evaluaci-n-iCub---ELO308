@@ -13,7 +13,7 @@ def plot_point(ax, x, y, z):
     ax.scatter(x, y, z, c='r', marker='o')
     plt.draw()
 
-KNOWN_DISTANCE = 30 #centimeters
+KNOWN_DISTANCE = 50 #centimeters
 KNOWN_WIDTH = 6.2 #centimeters
 
 def Focal_length(measured_distance, real_width, width_in_rf_image):
@@ -82,7 +82,7 @@ cv2.imshow("Ref", imgContourRef)
 object_width_image = 2*(int(contoursRef[0]['area']))/((np.pi)**2)
 Focal_length_found = Focal_length(KNOWN_DISTANCE, KNOWN_WIDTH, object_width_image)
 
-Base_distance = 50 #cm
+Base_distance = 80 #cm
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.7">
-  <model name="assignment_make-it-roll-ball">
+  <model name="red-ball">
     <static>false</static>
     <link name="link">
         <visual name="visual">
