@@ -4,10 +4,18 @@ from cv_bridge import CvBridge
 import cv2
 import numpy as np
 import cvzone
+import math
 
 from cvzone.ColorModule import ColorFinder
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+
+
+def calcular_diametro_desde_area(area):
+    radio = math.sqrt(area / math.pi)
+    diametro = 2 * radio
+    return diametro
+
 
 KNOWN_DISTANCE = 80.5 #centimeters
 KNOWN_WIDTH = 7 #centimeters
@@ -43,19 +51,7 @@ bridge = CvBridge()
 image_sub = rospy.Subscriber('/my_camera/image_raw', Image, image_callback)
 
 #------------------Conectividad con ROS y Gazebo-------------------------#
-
-#------------------Segmentación inicial-------------------------#
-
 ref_image = cv2.imread("conocida_805.png")
-
-colorF = ColorFinder(False)
-#Hue, saturation, value
-#hsvVals = {'hmin': 0, 'smin': 91, 'vmin': 124, 'hmax': 6, 'smax': 255, 'vmax': 255}# Este es el primero, funciona con menos luminosidad
-#Buscar la forma de tener un rango de detección
-#hsvVals = {'hmin': 0, 'smin': 74, 'vmin': 117, 'hmax': 179, 'smax': 255, 'vmax': 255}
-hsvVals_sim = {'hmin': 0, 'smin': 34, 'vmin': 0, 'hmax': 4, 'smax': 255, 'vmax': 255}
-
-
 #--------------Matríz de parámetros intrínsecos-------------------#
 focal_length_x = 1663.1481384679323
 focal_length_y = 1663.1481384679323
@@ -64,6 +60,11 @@ optical_center_y = 540.5
 K = np.array([[focal_length_x, 0, optical_center_x],
               [0, focal_length_y, optical_center_y],
               [0, 0, 1]])
+
+colorF = ColorFinder(False)
+
+hsvVals_sim = {'hmin': 0, 'smin': 34, 'vmin': 0, 'hmax': 4, 'smax': 255, 'vmax': 255}
+
 
 #--------------Extracción datos desde imagen referencia para cálculo de distancia------------------#
 
@@ -91,6 +92,7 @@ Base_distance = 70 #cm
 
 #------------------Segmentación inicial-------------------------#
 
+
 while not rospy.is_shutdown():
 
     # Crear el objeto para capturar video
@@ -106,34 +108,19 @@ while not rospy.is_shutdown():
                 int(contours[0]['area']) #Lista de contornos -> Queremos el controrno más grande
         #print(data)
 
-    
+    z = (focal_length_x * 0.07) / (calcular_diametro_desde_area(data[2]))
+    y = ((data[0]-optical_center_x)*z)/focal_length_x
+    x = ((data[1]-optical_center_y)*z)/focal_length_y
     #both2 = np.concatenate((mask, imgContour), axis=1)
-    if data[2] != 0:
-        Distance = Distance_finder(Focal_length_found, KNOWN_WIDTH, 2*(data[2])/((np.pi)**2))
-    else:
-        Distance = 0
-    #--------------------------Cálculo de coordenadas--------------------------------#
-    z_coordinate = Base_distance - Distance
-    u_frame = data[0]
-    v_frame = data[1]
-    
-    #proyectar puntos 2D en plano imagen
-    image_plane_coords = np.array([[u_frame], [v_frame], [1]])
-    #Normalizar coordenadas 2D
-    normalized_coords = np.dot(np.linalg.inv(K), image_plane_coords)
-    #Cálculo coordenadas 3D
-    #object_coords = image_plane_coords
-    object_coords = normalized_coords * z_coordinate
-    object_coords = object_coords.round(5)
-    #object_coords = normalized_coords
-    print(f"({object_coords.item(0)}, {object_coords.item(1)}, {object_coords.item(2)})")
+    object_coords = (x, -y, z)
 
-    cv2.putText(imgContour, f"Coordenadas: ({object_coords.item(0)}, {object_coords.item(1)}, {object_coords.item(2)})", (50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
-    cv2.putText(imgContour, f"Distancia [cm] = {Distance}",(50, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-    cv2.putText(imgContour, f"Distancia [cm] = {z_coordinate}",(50, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+
+    cv2.putText(imgContour, f"Coordenadas: ({object_coords[0]}, {object_coords[1]}, {object_coords[2]})", (50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
+    #cv2.putText(imgContour, f"Distancia [cm] = {Distance}",(50, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+    #cv2.putText(imgContour, f"Distancia [cm] = {z_coordinate}",(50, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
     both1 = np.concatenate((frame, imgColor), axis=1)
 
-
+    print(f"({object_coords[0]}, {object_coords[1]}, {object_coords[2]})")
 
     cv2.imshow("Image color", both1)
     cv2.imshow("Color detection", imgContour)
