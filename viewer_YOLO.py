@@ -65,7 +65,6 @@ while not rospy.is_shutdown():
         boxes = result.boxes.cpu().numpy() # get boxes on cpu in numpy
         for box in boxes: # iterate boxes
             r = box.xyxy[0].astype(int) # get corner points as int
-            print(r) # print boxes
             x1 = int(r[0])
             y1 = int(r[1])
             x2 = int(r[2])
