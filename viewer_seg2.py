@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def calcular_diametro_desde_area(area):
+def diametro_pixel(area):
     radio = math.sqrt(area / math.pi)
     diametro = 2 * radio
     return diametro
@@ -108,7 +108,7 @@ while not rospy.is_shutdown():
                 int(contours[0]['area']) #Lista de contornos -> Queremos el controrno más grande
         #print(data)
 
-    z = (focal_length_x * 0.07) / (calcular_diametro_desde_area(data[2]))
+    z = (focal_length_x * 0.07) / (diametro_pixel(data[2]))
     y = ((data[0]-optical_center_x)*z)/focal_length_x
     x = ((data[1]-optical_center_y)*z)/focal_length_y
     #both2 = np.concatenate((mask, imgContour), axis=1)
