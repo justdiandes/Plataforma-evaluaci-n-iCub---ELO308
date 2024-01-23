@@ -4,13 +4,13 @@ from cv_bridge import CvBridge
 import cv2
 import numpy as np
 import cvzone
-
+import math
 from cvzone.ColorModule import ColorFinder
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-KNOWN_DISTANCE = 80.5 #centimeters
-KNOWN_WIDTH = 7 #centimeters
+KNOWN_DISTANCE = 0.805 #centimeters
+KNOWN_WIDTH = 0.07 #centimeters
 
 def Focal_length(measured_distance, real_width, width_in_rf_image):
     focal_length = (width_in_rf_image * measured_distance)/real_width
@@ -20,7 +20,10 @@ def Distance_finder(Focal_Length, real_object_width, object_width_in_frame):
     distance = (real_object_width * Focal_Length)/object_width_in_frame
     return distance
 
-
+def ancho_pixel(area):
+    radio = math.sqrt(area / math.pi)
+    diametro = 2 * radio
+    return diametro
 #------------------Conectividad con ROS y Gazebo-------------------------#
 
 # Definir la función image_callback
@@ -75,7 +78,7 @@ if contoursRef:
             href - contoursRef[0]['center'][1],\
             int(contoursRef[0]['area'])
 
-object_width_image = 2*(data[2])/((np.pi)**2)
+object_width_image = data[2]
 '''
 else:
     # Asignar un valor predeterminado o manejar el caso en el que no se encuentren contornos
@@ -84,9 +87,10 @@ else:
 '''
 cv2.imshow("Ref", imgContourRef)
 
+
 Focal_length_found = Focal_length(KNOWN_DISTANCE, KNOWN_WIDTH, object_width_image)
 
-Base_distance = 70 #cm
+Base_distance = 80 #cm
 
 
 #------------------Segmentación inicial-------------------------#
@@ -109,26 +113,31 @@ while not rospy.is_shutdown():
     
     #both2 = np.concatenate((mask, imgContour), axis=1)
     if data[2] != 0:
-        Distance = Distance_finder(Focal_length_found, KNOWN_WIDTH, 2*(data[2])/((np.pi)**2))
+        Distance = Distance_finder(Focal_length_found, KNOWN_WIDTH, ancho_pixel(data[2]))
     else:
         Distance = 0
     #--------------------------Cálculo de coordenadas--------------------------------#
-    z_coordinate = Base_distance - Distance
+    z_coordinate = Distance
     u_frame = data[0]
     v_frame = data[1]
     
     #proyectar puntos 2D en plano imagen
-    image_plane_coords = np.array([[u_frame], [v_frame], [1]])
+    #image_plane_coords = np.array([[u_frame], [v_frame], [1]])
     #Normalizar coordenadas 2D
-    normalized_coords = np.dot(np.linalg.inv(K), image_plane_coords)
+    #normalized_coords = np.dot(np.linalg.inv(K), image_plane_coords)
     #Cálculo coordenadas 3D
     #object_coords = image_plane_coords
-    object_coords = normalized_coords * z_coordinate
-    object_coords = object_coords.round(5)
-    #object_coords = normalized_coords
-    print(f"({object_coords.item(0)}, {object_coords.item(1)}, {object_coords.item(2)})")
+    #object_coords = normalized_coords * z_coordinate
 
-    cv2.putText(imgContour, f"Coordenadas: ({object_coords.item(0)}, {object_coords.item(1)}, {object_coords.item(2)})", (50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
+    x = ((u_frame - optical_center_x)/(focal_length_x))*z_coordinate
+    y = ((v_frame - optical_center_y)/(focal_length_y))*z_coordinate
+    object_coords = (x, y, z_coordinate)
+
+    #object_coords = object_coords.round(5)
+    #object_coords = normalized_coords
+    print(f"({object_coords[0]}, {object_coords[1]}, {object_coords[2]})")
+
+    cv2.putText(imgContour, f"Coordenadas: ({object_coords[0]}, {object_coords[1]}, {object_coords[2]})", (50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
     cv2.putText(imgContour, f"Distancia [cm] = {Distance}",(50, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
     cv2.putText(imgContour, f"Distancia [cm] = {z_coordinate}",(50, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
     both1 = np.concatenate((frame, imgColor), axis=1)

@@ -5,16 +5,22 @@ import cv2
 import numpy as np
 import cvzone
 import math
-
+import csv
 from cvzone.ColorModule import ColorFinder
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+
+nombre_archivo = 'ground_truth.csv'
 
 
 def diametro_pixel(area):
     radio = math.sqrt(area / math.pi)
     diametro = 2 * radio
     return diametro
+def escribir_a_csv(datos):
+    with open(nombre_archivo, 'a', newline='') as archivo_csv:
+        escritor_csv = csv.writer(archivo_csv)
+        escritor_csv.writerow(datos)
 
 
 KNOWN_DISTANCE = 80.5 #centimeters
@@ -112,8 +118,9 @@ while not rospy.is_shutdown():
     y = ((data[0]-optical_center_x)*z)/focal_length_x
     x = ((data[1]-optical_center_y)*z)/focal_length_y
     #both2 = np.concatenate((mask, imgContour), axis=1)
-    object_coords = (x, -y, z)
-
+    object_coords = (x, y, z)
+    datos = np.array([object_coords[0], object_coords[1], object_coords[2]])
+    escribir_a_csv(datos)
 
     cv2.putText(imgContour, f"Coordenadas: ({object_coords[0]}, {object_coords[1]}, {object_coords[2]})", (50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
     #cv2.putText(imgContour, f"Distancia [cm] = {Distance}",(50, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
