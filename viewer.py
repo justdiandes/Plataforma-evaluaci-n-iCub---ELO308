@@ -4,16 +4,19 @@ import cv2 as cv
 from ultralytics import YOLO
 import numpy as np
 import math
-import csv
+from std_msgs.msg import Float64MultiArray
+import rospy
+
 
 model = YOLO("/home/diego/Escritorio/Plataforma-evaluacion-iCub-ELO308/train9_pc_icub/weights/last.pt")
-nombre_archivo = 'datos_icub.csv'
+rospy.init_node('icub_node', anonymous=True)
+
+
+pub = rospy.Publisher('/datos_sensor2', Float64MultiArray, queue_size=10)
+
 yarp.Network.init()
 
-def escribir_a_csv(datos):
-    with open(nombre_archivo, 'a', newline='') as archivo_csv:
-        escritor_csv = csv.writer(archivo_csv)
-        escritor_csv.writerow(datos)
+
 
 def calcular_diametro_desde_area(area):
     radio = math.sqrt(area / math.pi)
@@ -126,12 +129,13 @@ while(1):
     coords_hom_robot = np.array([x, y, z, 1])
 
     coords_robot_cam = np.dot(T_inverse, coords_hom_robot)
+    #coords_robot_cam = np.dot(coords_hom_robot, T)
     
     x_final = coords_robot_cam[0]
     y_final = coords_robot_cam[1]
     z_final = coords_robot_cam[2]
     datos = np.array([x_final, y_final, z_final])
-    escribir_a_csv(datos)
+    pub.publish(Float64MultiArray(data=datos))
 
     cv.putText(annotated_frame, f"Coordenadas: ({x_final}, {y_final}, {z_final})", (50,50),cv.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
     cv.imshow("Imagen recibida", annotated_frame)
