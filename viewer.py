@@ -35,6 +35,12 @@ K = np.array([[focal_length_x, 0, optical_center_x],
 
 theta = (50)/(math.pi*180)
 
+Rot_m = np.array([[math.cos(theta), 0, math.sin(theta)],
+                  [0, 1, 0],
+                  [-math.sin(theta), 0, math.cos(theta)]])
+
+trans_v = np.array([0.693799, 0.000005, -0.338206])
+
 T = np.array([[math.cos(theta), 0, math.sin(theta), 0.693799],
               [0, 1, 0, 0.000005],
               [-math.sin(theta), 0, math.cos(theta), -0.338206],
@@ -126,20 +132,23 @@ while(1):
     x = ((center_y-optical_center_y)*z)/focal_length_y
     
     object_coords = (x, y, z)
-    coords_hom_robot = np.array([x, y, z, 1])
-
-    coords_robot_cam = np.dot(T_inverse, coords_hom_robot)
+    #coords_hom_robot = np.array([x, y, z, 1])
+    coords_hom_robot = np.array([x, y, z])
+    coords_robot_cam_rot = np.dot(Rot_m, coords_hom_robot)
+    coords_robot_cam = coords_robot_cam_rot + trans_v
+    
+    #coords_robot_cam = np.dot(T_inverse, coords_hom_robot)
     #coords_robot_cam = np.dot(coords_hom_robot, T)
     
     x_final = coords_robot_cam[0]
     y_final = coords_robot_cam[1]
     z_final = coords_robot_cam[2]
-    datos = np.array([x_final, y_final, z_final])
+    datos = np.array([z_final, y_final, x_final])
     pub.publish(Float64MultiArray(data=datos))
 
-    cv.putText(annotated_frame, f"Coordenadas: ({x_final}, {y_final}, {z_final})", (50,50),cv.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
+    cv.putText(annotated_frame, f"Coordenadas: ({y_final}, {z_final}, {x_final})", (50,50),cv.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
     cv.imshow("Imagen recibida", annotated_frame)
-    print(f"({x_final}, {y_final}, {z_final}, {coords_robot_cam[3]})")
+    print(f"({z_final}, {y_final}, {x_final})")
 
 
 
