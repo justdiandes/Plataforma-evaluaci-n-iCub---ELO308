@@ -6,11 +6,34 @@ from ultralytics import YOLO
 import numpy as np
 import cvzone
 import math
+from std_msgs.msg import Float64MultiArray
 
-def calcular_diametro_desde_area(area):
+
+pub = rospy.Publisher('/datos_sensor1', Float64MultiArray, queue_size=10)
+
+def escribir_a_ros(datos):
+    # Publicar datos en el tópico de ROS
+    pub.publish(Float64MultiArray(data=datos))
+
+
+def diametro_pixel(area):
     radio = math.sqrt(area / math.pi)
     diametro = 2 * radio
     return diametro
+
+
+KNOWN_DISTANCE = 0.805 #centimeters
+KNOWN_WIDTH = 0.07 #centimeters
+
+def Focal_length(measured_distance, real_width, width_in_rf_image):
+    focal_length = (width_in_rf_image * measured_distance)/real_width
+    return focal_length
+
+def Distance_finder(Focal_Length, real_object_width, object_width_in_frame):    
+    distance = (real_object_width * Focal_Length)/object_width_in_frame
+    return distance
+
+
 
 
 #---------------------------Importar YOLO--------------------------------#
@@ -40,7 +63,7 @@ bridge = CvBridge()
 image_sub = rospy.Subscriber('/my_camera/image_raw', Image, image_callback)
 
 #------------------Conectividad con ROS y Gazebo-------------------------#
-ref_image = cv2.imread("conocida_805.png")
+ref_image = cv2.imread("conocida_80.png")
 #--------------Matríz de parámetros intrínsecos-------------------#
 focal_length_x = 1663.1481384679323
 focal_length_y = 1663.1481384679323
@@ -76,9 +99,9 @@ while not rospy.is_shutdown():
             cv2.circle(annotated_frame, center_point, 5, (0, 255, 255), -1)  # Punto en el centro en rojo
     w = x2 - x1
     h = y2 - y1
-    z = (focal_length_x * 0.07) / (calcular_diametro_desde_area(w*h))
-    y = ((center_x-optical_center_x)*z)/focal_length_x
-    x = ((center_y-optical_center_y)*z)/focal_length_y
+    z = round((focal_length_x * 0.07) / (calcular_diametro_desde_area(w*h)), 3)
+    y = round(((center_x-optical_center_x)*z)/focal_length_x, 3)
+    x = round(((center_y-optical_center_y)*z)/focal_length_y, 3)
     
     object_coords = (-x, -y, z)
 

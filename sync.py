@@ -11,9 +11,9 @@ class SynchronizedData:
 def callback(sensor_data, sensor_name):
     # Agregar un retardo específico para cada sensor (en segundos)
     if sensor_name == 'cam':
-        rospy.sleep(0.1)  # Retardo de 0.1 segundos
+        rospy.sleep(0.05)  # Retardo de 0.1 segundos
     elif sensor_name == 'icub':
-        rospy.sleep(0.1)  # Retardo de 0.1
+        rospy.sleep(0.05)  # Retardo de 0.1
 
     # Procesar datos y guardar en un archivo CSV
     timestamp = rospy.Time.now()

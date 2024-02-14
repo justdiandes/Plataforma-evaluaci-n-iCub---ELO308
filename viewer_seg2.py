@@ -26,8 +26,8 @@ def diametro_pixel(area):
     return diametro
 
 
-KNOWN_DISTANCE = 80.5 #centimeters
-KNOWN_WIDTH = 7 #centimeters
+KNOWN_DISTANCE = 0.805 #centimeters
+KNOWN_WIDTH = 0.07 #centimeters
 
 def Focal_length(measured_distance, real_width, width_in_rf_image):
     focal_length = (width_in_rf_image * measured_distance)/real_width
@@ -60,7 +60,7 @@ bridge = CvBridge()
 image_sub = rospy.Subscriber('/my_camera/image_raw', Image, image_callback)
 
 #------------------Conectividad con ROS y Gazebo-------------------------#
-ref_image = cv2.imread("conocida_805.png")
+ref_image = cv2.imread("conocida_80.png")
 #--------------Matríz de parámetros intrínsecos-------------------#
 focal_length_x = 1663.1481384679323
 focal_length_y = 1663.1481384679323
@@ -85,19 +85,14 @@ if contoursRef:
             href - contoursRef[0]['center'][1],\
             int(contoursRef[0]['area'])
 
-object_width_image = 2*(data[2])/((np.pi)**2)
-'''
-else:
-    # Asignar un valor predeterminado o manejar el caso en el que no se encuentren contornos
-    object_width_image = 0  # o cualquier otro valor predeterminado que tenga sentido en tu aplicación
-    data = (0, 0, 0)  # Otra opción para manejar el caso sin contornos
-'''
+object_width_image = diametro_pixel(data[2])
+
 cv2.imshow("Ref", imgContourRef)
 
 Focal_length_found = Focal_length(KNOWN_DISTANCE, KNOWN_WIDTH, object_width_image)
 
-Base_distance = 70 #cm
 
+#Podemos estimar el focal length o usar el focal length x (el valor no varía tanto c:)
 
 #------------------Segmentación inicial-------------------------#
 
@@ -117,14 +112,14 @@ while not rospy.is_shutdown():
                 int(contours[0]['area']) #Lista de contornos -> Queremos el controrno más grande
         #print(data)
 
-    z = (focal_length_x * 0.07) / (diametro_pixel(data[2]))
-    y = ((data[0]-optical_center_x)*z)/focal_length_x
-    x = ((data[1]-optical_center_y)*z)/focal_length_y
+    z = round((focal_length_x * 0.07) / (diametro_pixel(data[2])), 2)
+    y = round(((data[0]-optical_center_x)*z)/focal_length_x, 2)
+    x = round(((data[1]-optical_center_y)*z)/focal_length_y, 2)
     #both2 = np.concatenate((mask, imgContour), axis=1)
     object_coords = (x, y, z)
     datos = np.array([object_coords[0], object_coords[1], object_coords[2]])
     escribir_a_ros(datos)
-
+  
     cv2.putText(imgContour, f"Coordenadas: ({object_coords[0]}, {object_coords[1]}, {object_coords[2]})", (50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
     #cv2.putText(imgContour, f"Distancia [cm] = {Distance}",(50, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
     #cv2.putText(imgContour, f"Distancia [cm] = {z_coordinate}",(50, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)

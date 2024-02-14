@@ -8,7 +8,7 @@ from std_msgs.msg import Float64MultiArray
 import rospy
 
 
-model = YOLO("/home/diego/Escritorio/Plataforma-evaluacion-iCub-ELO308/train9_pc_icub/weights/last.pt")
+model = YOLO("/home/diego/Escritorio/Plataforma-evaluacion-iCub-ELO308/runs/detect/train2/weights/last.pt")
 rospy.init_node('icub_node', anonymous=True)
 
 
@@ -140,12 +140,12 @@ while(1):
     #coords_robot_cam = np.dot(T_inverse, coords_hom_robot)
     #coords_robot_cam = np.dot(coords_hom_robot, T)
     
-    x_final = coords_robot_cam[0]
-    y_final = coords_robot_cam[1]
-    z_final = coords_robot_cam[2]
+    x_final = round(coords_robot_cam[0], 2)
+    y_final = round(coords_robot_cam[1], 2)
+    z_final = round(coords_robot_cam[2], 2)
     datos = np.array([z_final, y_final, x_final])
     pub.publish(Float64MultiArray(data=datos))
-
+    
     cv.putText(annotated_frame, f"Coordenadas: ({y_final}, {z_final}, {x_final})", (50,50),cv.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
     cv.imshow("Imagen recibida", annotated_frame)
     print(f"({z_final}, {y_final}, {x_final})")
