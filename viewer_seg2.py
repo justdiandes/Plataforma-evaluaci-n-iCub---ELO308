@@ -15,6 +15,7 @@ from std_msgs.msg import Float64MultiArray
 
 pub = rospy.Publisher('/datos_sensor1', Float64MultiArray, queue_size=10)
 
+
 def escribir_a_ros(datos):
     # Publicar datos en el tópico de ROS
     pub.publish(Float64MultiArray(data=datos))
@@ -112,12 +113,12 @@ while not rospy.is_shutdown():
                 int(contours[0]['area']) #Lista de contornos -> Queremos el controrno más grande
         #print(data)
 
-    z = round((focal_length_x * 0.07) / (diametro_pixel(data[2])), 2)
-    y = round(((data[0]-optical_center_x)*z)/focal_length_x, 2)
-    x = round(((data[1]-optical_center_y)*z)/focal_length_y, 2)
+    z = round((Focal_length_found* 0.07) / (diametro_pixel(data[2])), 3)
+    y = round(((data[0]-optical_center_x)*z)/focal_length_x, 3)
+    x = round(((data[1]-optical_center_y)*z)/focal_length_y, 3)
     #both2 = np.concatenate((mask, imgContour), axis=1)
-    object_coords = (x, y, z)
-    datos = np.array([object_coords[0], object_coords[1], object_coords[2]])
+    object_coords = (-x, y, z)
+    datos = np.array([object_coords[0], object_coords[1], 1.31 - object_coords[2]])
     escribir_a_ros(datos)
   
     cv2.putText(imgContour, f"Coordenadas: ({object_coords[0]}, {object_coords[1]}, {object_coords[2]})", (50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
@@ -125,7 +126,7 @@ while not rospy.is_shutdown():
     #cv2.putText(imgContour, f"Distancia [cm] = {z_coordinate}",(50, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
     both1 = np.concatenate((frame, imgColor), axis=1)
 
-    print(f"({object_coords[0]}, {object_coords[1]}, {object_coords[2]})")
+    print(f"({object_coords[0]}, {object_coords[1]},{object_coords[2]})")
 
     cv2.imshow("Image color", both1)
     cv2.imshow("Color detection", imgContour)

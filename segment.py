@@ -155,14 +155,15 @@ while not rospy.is_shutdown():
 
         # Invert the mask to get everything but black
         mask = cv2.bitwise_not(mask)
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         # Apply the mask to the original image
-    total_area = 0
+    total_area2 = 0
 
     # Iterar sobre los contornos y calcular el área de cada uno
     for contour in contours:
         area = cv2.contourArea(contour)
-        total_area += area
+        total_area2 += area
 
     
     annotated_frame = results[0].plot()
@@ -182,12 +183,12 @@ while not rospy.is_shutdown():
     w = x2 - x1
     h = y2 - y1
 
-    z = round((Focal_length_found * 0.07) / (diametro_pixel(total_area)), 3)
+    z = round((Focal_length_found * 0.07) / (diametro_pixel(total_area2)), 3)
     y = round(((center_x-optical_center_x)*z)/focal_length_x, 3)
     x = round(((center_y-optical_center_y)*z)/focal_length_y, 3)
 
     object_coords = (x, y, z)
-    datos = np.array([object_coords[0], object_coords[1], object_coords[2]])
+    datos = np.array([object_coords[0], object_coords[1], 1.31 - object_coords[2]])
     escribir_a_ros(datos)
   
     cv2.putText(annotated_frame, f"Coordenadas: ({object_coords[0]}, {object_coords[1]}, {object_coords[2]})", (50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)

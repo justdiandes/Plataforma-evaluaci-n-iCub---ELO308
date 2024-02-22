@@ -99,11 +99,15 @@ while not rospy.is_shutdown():
             cv2.circle(annotated_frame, center_point, 5, (0, 255, 255), -1)  # Punto en el centro en rojo
     w = x2 - x1
     h = y2 - y1
-    z = round((focal_length_x * 0.07) / (calcular_diametro_desde_area(w*h)), 3)
+    z = round((focal_length_x * 0.07) / (diametro_pixel(w*h)), 3)
     y = round(((center_x-optical_center_x)*z)/focal_length_x, 3)
     x = round(((center_y-optical_center_y)*z)/focal_length_y, 3)
     
-    object_coords = (-x, -y, z)
+    object_coords = (x, y, z)
+
+
+    datos = np.array([object_coords[0], object_coords[1], 1.31 - object_coords[2]])
+    escribir_a_ros(datos)
 
     cv2.putText(annotated_frame, f"Coordenadas: ({object_coords[0]}, {object_coords[1]}, {object_coords[2]})", (50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
     cv2.imshow("Imagen recibida", annotated_frame)

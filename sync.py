@@ -12,7 +12,7 @@ def callback(sensor_data, sensor_name):
     # Agregar un retardo específico para cada sensor (en segundos)
     if sensor_name == 'cam':
         rospy.sleep(0.05)  # Retardo de 0.1 segundos
-    elif sensor_name == 'icub':
+    elif sensor_name == 'real':
         rospy.sleep(0.05)  # Retardo de 0.1
 
     # Procesar datos y guardar en un archivo CSV
@@ -30,7 +30,7 @@ rospy.init_node('data_saver')
 
 # Utilizar Subscriber para suscribirse a los tópicos
 sub1 = rospy.Subscriber('/datos_sensor1', Float64MultiArray, callback, callback_args='cam', queue_size=10)
-sub2 = rospy.Subscriber('/datos_sensor2', Float64MultiArray, callback, callback_args='icub', queue_size=10)
+sub2 = rospy.Subscriber('/datos_sensor2', Float64MultiArray, callback, callback_args='real', queue_size=10)
 
 rospy.loginfo("Nodo iniciado. Esperando datos...")
 
