@@ -10,6 +10,7 @@ from std_msgs.msg import Float64MultiArray
 
 
 
+
 pub = rospy.Publisher('/datos_sensor1', Float64MultiArray, queue_size=10)
 
 def escribir_a_ros(datos):
@@ -36,15 +37,25 @@ def Distance_finder(Focal_Length, real_object_width, object_width_in_frame):
 
 
 #---------------------------Importar YOLO--------------------------------#
-model = YOLO('/home/diego/Escritorio/Plataforma-evaluacion-iCub-ELO308/runs/segment/train/weights/last.pt')
+model = YOLO('/home/diego/Escritorio/Plataforma-evaluacion-iCub-ELO308/runs/segment/train/weights/best.pt')
 frame = None
+
 #---------------------------Importar YOLO--------------------------------#
 
 #------------------Conectividad con ROS y Gazebo-------------------------#
-
+last_frame_time = None
 # Definir la función image_callback
 def image_callback(image_msg):
     global frame
+    global last_frame_time
+    current_time = rospy.get_time()  # Get the current time
+    if last_frame_time is not None:
+        # Calculate the time difference between the current frame and the last frame
+        time_diff = current_time - last_frame_time
+        # Calculate the frame rate
+        frame_rate = 1.0 / time_diff
+        print("Frame rate:", frame_rate, "fps")
+    last_frame_time = current_time
     # Convertir el mensaje de imagen a una imagen de OpenCV
     bridge = CvBridge()
     frame = bridge.imgmsg_to_cv2(image_msg, desired_encoding="bgr8")
@@ -130,6 +141,7 @@ while not rospy.is_shutdown():
 
     #cv2.imshow("mask", (results[0].masks[0].cpu().data.numpy().transpose(1, 2, 0) * 255).astype("uint8"))
 
+
     if(results[0].masks is not None):
         # Convert mask to single channel image
         mask_raw = results[0].masks[0].cpu().data.numpy().transpose(1, 2, 0)
@@ -156,7 +168,7 @@ while not rospy.is_shutdown():
         # Invert the mask to get everything but black
         mask = cv2.bitwise_not(mask)
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
+        
         # Apply the mask to the original image
     total_area2 = 0
 
@@ -168,6 +180,7 @@ while not rospy.is_shutdown():
     
     annotated_frame = results[0].plot()
     for result in results:
+        boxes_id = result.boxes.id
         boxes = result.boxes.cpu().numpy() # get boxes on cpu in numpy
         for box in boxes: # iterate boxes
             r = box.xyxy[0].astype(int) # get corner points as int
@@ -182,16 +195,17 @@ while not rospy.is_shutdown():
             cv2.circle(annotated_frame, center_point, 5, (0, 255, 255), -1)  # Punto en el centro en rojo
     w = x2 - x1
     h = y2 - y1
-
+    
     z = round((Focal_length_found * 0.07) / (diametro_pixel(total_area2)), 3)
     y = round(((center_x-optical_center_x)*z)/focal_length_x, 3)
     x = round(((center_y-optical_center_y)*z)/focal_length_y, 3)
 
     object_coords = (x, y, z)
-    datos = np.array([object_coords[0], object_coords[1], 1.31 - object_coords[2]])
+    datos = np.array([object_coords[0], object_coords[1], object_coords[2]])
     escribir_a_ros(datos)
+
   
-    cv2.putText(annotated_frame, f"Coordenadas: ({object_coords[0]}, {object_coords[1]}, {object_coords[2]})", (50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
+    cv2.putText(annotated_frame, f"Coordenadas: ({object_coords[0]}, {object_coords[1]}, {object_coords[2]}). {total_area2}", (50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 1)
     # Show the masked part of the image
     cv2.imshow("Imagen recibida", annotated_frame)
 

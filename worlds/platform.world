@@ -28,7 +28,7 @@
       </light>
 
       <light name='user_point_light_0'>
-        <pose frame=''>0.197302 -0.215077 1 0 -0 0</pose>
+        <pose frame=''>0.197302 -0.215077 5 0 -0 0</pose>
       </light>
     </state>
 

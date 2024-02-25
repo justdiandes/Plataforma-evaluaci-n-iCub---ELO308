@@ -38,12 +38,23 @@ def Distance_finder(Focal_Length, real_object_width, object_width_in_frame):
     distance = (real_object_width * Focal_Length)/object_width_in_frame
     return distance
 
-
+# Global variable to store the timestamp of the last received frame
+last_frame_time = None
 #------------------Conectividad con ROS y Gazebo-------------------------#
 
 # Definir la función image_callback
 def image_callback(image_msg):
     global frame
+
+    global last_frame_time
+    current_time = rospy.get_time()  # Get the current time
+    if last_frame_time is not None:
+        # Calculate the time difference between the current frame and the last frame
+        time_diff = current_time - last_frame_time
+        # Calculate the frame rate
+        frame_rate = 1.0 / time_diff
+        print("Frame rate:", frame_rate, "fps")
+    last_frame_time = current_time
     # Convertir el mensaje de imagen a una imagen de OpenCV
     bridge = CvBridge()
     frame = bridge.imgmsg_to_cv2(image_msg, desired_encoding="bgr8")
